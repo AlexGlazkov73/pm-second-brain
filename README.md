@@ -5,11 +5,6 @@ Personal Second Brain skill-pack for **OpenCode** and **Claude Code**.
 Turns any Obsidian vault into a self-evolving knowledge base for product managers.
 Markdown-only. No vendor lock-in. Local-first with optional MCP integrations.
 
-## Status
-
-**v0** — early development. See [`tasks/plans/`](../tasks/plans/) for the implementation plan
-and [`specs/`](../specs/) for the design.
-
 ## Quick install (macOS)
 
 ```bash
