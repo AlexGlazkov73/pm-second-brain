@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # PM Second Brain — one-line bootstrap installer
 #
-# Usage:
+# Recommended usage (most robust):
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/AlexGlazkov73/pm-second-brain/main/install.sh)"
+#
+# Also supported (script self-relocates to /tmp under the hood):
 #   curl -fsSL https://raw.githubusercontent.com/AlexGlazkov73/pm-second-brain/main/install.sh | bash
 #
 # What it does:
@@ -13,6 +16,30 @@
 #   5. Hands off to the existing interactive setup-pm-second-brain.sh
 #
 # Logs are duplicated to /tmp/pm-secondbrain-install-<timestamp>.log
+
+# ---------------------------------------------------------------------------
+# Self-relocate when piped (curl ... | bash)
+# ---------------------------------------------------------------------------
+# When invoked via `curl | bash`, bash reads the script body from the pipe in
+# chunks. If we later run `exec < /dev/tty` to read user input, bash may not
+# have finished reading the script yet and starts trying to read remaining
+# script bytes from the terminal — the install hangs waiting for the user to
+# "type" the rest of the script. Fix: if stdin is a pipe, dump the full
+# script to a temp file and re-exec from disk before doing anything else.
+if [[ ! -t 0 ]] && [[ -z "${PM_SB_BOOTSTRAPPED:-}" ]]; then
+  _PM_SB_REPO_OWNER="${PM_SB_REPO_OWNER:-AlexGlazkov73}"
+  _PM_SB_REPO_NAME="${PM_SB_REPO_NAME:-pm-second-brain}"
+  _PM_SB_REPO_BRANCH="${PM_SB_REPO_BRANCH:-main}"
+  _PM_SB_RAW_URL="https://raw.githubusercontent.com/${_PM_SB_REPO_OWNER}/${_PM_SB_REPO_NAME}/${_PM_SB_REPO_BRANCH}/install.sh"
+  _PM_SB_TMP="$(mktemp -t pm-secondbrain-install.XXXXXX.sh)"
+  if ! curl -fsSL "$_PM_SB_RAW_URL" -o "$_PM_SB_TMP"; then
+    printf '[install] ERROR: failed to download installer from %s\n' "$_PM_SB_RAW_URL" >&2
+    rm -f "$_PM_SB_TMP"
+    exit 1
+  fi
+  export PM_SB_BOOTSTRAPPED=1
+  exec bash "$_PM_SB_TMP" "$@"
+fi
 
 set -euo pipefail
 
