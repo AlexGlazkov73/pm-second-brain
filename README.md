@@ -13,7 +13,7 @@ and [`specs/`](../specs/) for the design.
 ## Quick install (macOS)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zenin7305/pm-second-brain/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/AlexGlazkov73/pm-second-brain/main/install.sh | bash
 ```
 
 This one-liner:

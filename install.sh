@@ -2,13 +2,13 @@
 # PM Second Brain — one-line bootstrap installer
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/zenin7305/pm-second-brain/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/AlexGlazkov73/pm-second-brain/main/install.sh | bash
 #
 # What it does:
 #   1. Verifies macOS + detects Apple Silicon vs Intel
 #   2. Installs Homebrew if missing
 #   3. Installs git, uv, sqlite, python@3.12 via brew (skips if present)
-#   4. Clones github.com/zenin7305/pm-second-brain into ~/PM-SecondBrain
+#   4. Clones github.com/AlexGlazkov73/pm-second-brain into ~/PM-SecondBrain
 #      (asks before overwriting an existing dir)
 #   5. Hands off to the existing interactive setup-pm-second-brain.sh
 #
@@ -19,7 +19,7 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-REPO_OWNER="${PM_SB_REPO_OWNER:-zenin7305}"
+REPO_OWNER="${PM_SB_REPO_OWNER:-AlexGlazkov73}"
 REPO_NAME="${PM_SB_REPO_NAME:-pm-second-brain}"
 REPO_URL="${PM_SB_REPO_URL:-https://github.com/${REPO_OWNER}/${REPO_NAME}.git}"
 REPO_BRANCH="${PM_SB_REPO_BRANCH:-main}"
