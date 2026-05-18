@@ -44,6 +44,21 @@ fail()   {
 
 trap 'fail "installer aborted on line $LINENO"' ERR
 
+# Reattach stdin to the controlling terminal when invoked via `curl ... | bash`.
+# Without this, child processes (Homebrew installer, setup-pm-second-brain.sh
+# interactive prompts) would inherit the pipe carrying this very script,
+# consuming script bytes as input and leading to confusing failures like
+# "unbound variable" further down, or a vault-path prompt that loops on empty
+# input.
+if [[ ! -t 0 ]]; then
+  if [[ -r /dev/tty ]]; then
+    exec < /dev/tty
+    log "stdin reattached to /dev/tty (was a pipe — curl|bash mode)"
+  else
+    fail "stdin is not a TTY and /dev/tty is unavailable — run install.sh from an interactive terminal"
+  fi
+fi
+
 # ---------------------------------------------------------------------------
 # 1. Pre-flight
 # ---------------------------------------------------------------------------
