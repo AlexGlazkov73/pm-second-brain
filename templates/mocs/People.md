@@ -1,0 +1,6 @@
+---
+type: moc
+---
+# People
+
+(empty)

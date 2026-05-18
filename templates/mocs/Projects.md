@@ -1,0 +1,6 @@
+---
+type: moc
+---
+# Projects
+
+(empty)

@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "{{VAULT_ROOT}}"]
+    },
+    "pm-sqlite-fts": {
+      "command": "uv",
+      "args": ["run", "--directory", "{{REPO_ROOT}}", "pm-sqlite-fts-mcp"],
+      "env": {
+        "PM_SQLITE_FTS_DB": "{{VAULT_ROOT}}/_brain/sessions.db"
+      }
+    }
+  }
+}

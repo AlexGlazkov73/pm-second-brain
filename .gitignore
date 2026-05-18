@@ -1,0 +1,71 @@
+# ---------------------------------------------------------------------------
+# pm-second-brain .gitignore
+# Public installer repo. Anything user-specific, secret, or build-time must
+# stay out of git.
+# ---------------------------------------------------------------------------
+
+# --- Python build / cache --------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# --- Virtualenvs / uv ------------------------------------------------------
+.venv/
+venv/
+env/
+.uv/
+
+# Note: uv.lock IS committed (reproducible installs for the installer).
+
+# --- Secrets & local config ------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+secrets.json
+config.yaml
+config.local.yaml
+
+# --- User runtime state (created by setup-pm-second-brain.sh) --------------
+runtime-links/
+version.lock
+*.sqlite
+*.sqlite-journal
+*.db
+*.db-journal
+
+# --- Local Claude Code / OpenCode session state ----------------------------
+.claude/
+.opencode/
+.superpowers/
+
+# --- Installer logs --------------------------------------------------------
+pm-secondbrain-install-*.log
+
+# --- OS / editor noise -----------------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# --- Scratch / spike artifacts ---------------------------------------------
+scratch/
+tmp/
+*.tmp

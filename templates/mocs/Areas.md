@@ -1,0 +1,6 @@
+---
+type: moc
+---
+# Areas
+
+(empty)

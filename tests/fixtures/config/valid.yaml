@@ -1,0 +1,7 @@
+vault:
+  root: "/tmp/test-vault"
+language: "ru"
+llm:
+  primary_model: "claude-sonnet-4-6"
+evolution:
+  max_patches_per_week: 3

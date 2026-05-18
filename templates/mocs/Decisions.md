@@ -1,0 +1,6 @@
+---
+type: moc
+---
+# Decisions
+
+(empty)
