@@ -12,7 +12,10 @@ ask() {
   local hint=""
   [[ -n "$default" ]] && hint=" [$default]"
   local ans
-  read -r -e -p "$label$hint: " ans
+  # Prompt to stderr explicitly + plain `read` (no -e): macOS bash 3.2 readline
+  # misbehaves when stdin is /dev/tty reattached from a pipe (curl|bash mode).
+  printf '%s%s: ' "$label" "$hint" >&2
+  read -r ans
   echo "${ans:-$default}"
 }
 
@@ -22,7 +25,8 @@ ask_yn() {
   local hint="[y/N]"
   [[ "$default" == "y" ]] && hint="[Y/n]"
   local ans
-  read -r -e -p "$label $hint: " ans
+  printf '%s %s: ' "$label" "$hint" >&2
+  read -r ans
   ans="${ans:-$default}"
   [[ "$ans" =~ ^[Yy]([Ee][Ss])?$ ]]
 }
