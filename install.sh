@@ -24,6 +24,7 @@ REPO_NAME="${PM_SB_REPO_NAME:-pm-second-brain}"
 REPO_URL="${PM_SB_REPO_URL:-https://github.com/${REPO_OWNER}/${REPO_NAME}.git}"
 REPO_BRANCH="${PM_SB_REPO_BRANCH:-main}"
 TARGET_DIR="${PM_SB_TARGET_DIR:-$HOME/PM-SecondBrain}"
+DEFAULT_VAULT_ROOT="$HOME/Documents/Obsidian/PM-SecondBrain"
 
 TS="$(date +%Y%m%dT%H%M%S)"
 LOG_FILE="/tmp/pm-secondbrain-install-${TS}.log"
@@ -169,7 +170,74 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 5. Hand off to interactive setup
+# 5. Collect setup answers up-front (vault path, language, cron, launchd)
+# ---------------------------------------------------------------------------
+# Why here, not inside setup-pm-second-brain.sh:
+#   In curl|bash mode the inner readline prompts (`read -e`) over /dev/tty
+#   misbehave on macOS bash 3.2 and the vault prompt occasionally crashes
+#   the run. We collect answers here with plain `read` and pass them via env;
+#   setup-pm-second-brain.sh now honors PM_SB_* and skips its own prompts.
+
+read_with_default() {
+  local label="$1" default="$2" ans
+  if [[ -n "$default" ]]; then
+    printf '[install] %s [%s]: ' "$label" "$default" >&2
+  else
+    printf '[install] %s: ' "$label" >&2
+  fi
+  read -r ans
+  echo "${ans:-$default}"
+}
+
+read_yn() {
+  local label="$1" default="$2" ans hint="[y/N]"
+  [[ "$default" == "y" ]] && hint="[Y/n]"
+  printf '[install] %s %s: ' "$label" "$hint" >&2
+  read -r ans
+  ans="${ans:-$default}"
+  [[ "$ans" =~ ^[Yy]([Ee][Ss])?$ ]]
+}
+
+log ""
+log "Setup answers (will be passed to the inner installer):"
+
+# Vault path — user must choose; everything will be initialized there.
+VAULT_ROOT=""
+while true; do
+  VAULT_ROOT=$(read_with_default "Obsidian vault path (absolute)" "$DEFAULT_VAULT_ROOT")
+  VAULT_ROOT="${VAULT_ROOT/#\~/$HOME}"
+  if [[ "$VAULT_ROOT" == /* ]]; then break; fi
+  warn "path must be absolute (start with /). Try again."
+done
+log "  vault: $VAULT_ROOT"
+
+OUT_LANG=$(read_with_default "Output language (ru/en)" "ru")
+case "$OUT_LANG" in ru|en) ;; *) warn "unknown lang '$OUT_LANG', defaulting to ru"; OUT_LANG="ru" ;; esac
+log "  language: $OUT_LANG"
+
+CRON_TIME=$(read_with_default "Daily brief cron (m h dom mon dow)" "0 8 * * 1-5")
+log "  cron: $CRON_TIME"
+
+if read_yn "Install macOS launchd schedule for daily brief?" "y"; then
+  INSTALL_LAUNCHD="yes"
+else
+  INSTALL_LAUNCHD="no"
+fi
+log "  launchd: $INSTALL_LAUNCHD"
+
+# Pre-create the vault dir so the inner script never has to ask again.
+if [[ ! -d "$VAULT_ROOT" ]]; then
+  log "Creating vault directory: $VAULT_ROOT"
+  mkdir -p "$VAULT_ROOT"
+fi
+
+export PM_SB_VAULT_ROOT="$VAULT_ROOT"
+export PM_SB_OUT_LANG="$OUT_LANG"
+export PM_SB_CRON_TIME="$CRON_TIME"
+export PM_SB_INSTALL_LAUNCHD="$INSTALL_LAUNCHD"
+
+# ---------------------------------------------------------------------------
+# 6. Hand off to interactive setup
 # ---------------------------------------------------------------------------
 SETUP_SCRIPT="$TARGET_DIR/setup-pm-second-brain.sh"
 [[ -x "$SETUP_SCRIPT" ]] || chmod +x "$SETUP_SCRIPT" 2>/dev/null || true

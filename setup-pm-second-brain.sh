@@ -38,17 +38,29 @@ ok "prerequisites present"
 # --- 2. Vault path ----------------------------------------------------------
 say ""
 info "Obsidian vault"
-VAULT_ROOT=""
-while true; do
-  VAULT_ROOT=$(ask "Vault path (absolute, e.g. /Users/you/Documents/Obsidian/PM)" "$HOME/Documents/Obsidian/PM-SecondBrain")
-  # Expand a leading ~ if user typed it.
-  VAULT_ROOT="${VAULT_ROOT/#\~/$HOME}"
-  if is_absolute_path "$VAULT_ROOT"; then break; fi
-  warn "path must be absolute (start with /). Try again."
-done
+VAULT_ROOT="${PM_SB_VAULT_ROOT:-}"
+# Expand a leading ~ if env carried one.
+VAULT_ROOT="${VAULT_ROOT/#\~/$HOME}"
+if [[ -n "$VAULT_ROOT" ]]; then
+  if ! is_absolute_path "$VAULT_ROOT"; then
+    fail "PM_SB_VAULT_ROOT must be absolute (got: $VAULT_ROOT)"
+    exit 1
+  fi
+  ok "vault path from env: $VAULT_ROOT"
+else
+  while true; do
+    VAULT_ROOT=$(ask "Vault path (absolute, e.g. /Users/you/Documents/Obsidian/PM)" "$HOME/Documents/Obsidian/PM-SecondBrain")
+    VAULT_ROOT="${VAULT_ROOT/#\~/$HOME}"
+    if is_absolute_path "$VAULT_ROOT"; then break; fi
+    warn "path must be absolute (start with /). Try again."
+  done
+fi
 
 if [[ ! -d "$VAULT_ROOT" ]]; then
-  if ask_yn "Directory $VAULT_ROOT does not exist. Create it?" y; then
+  if [[ -n "${PM_SB_VAULT_ROOT:-}" ]]; then
+    mkdir -p "$VAULT_ROOT"
+    ok "created $VAULT_ROOT"
+  elif ask_yn "Directory $VAULT_ROOT does not exist. Create it?" y; then
     mkdir -p "$VAULT_ROOT"
     ok "created $VAULT_ROOT"
   else
@@ -59,11 +71,21 @@ fi
 
 # --- 3. Language / API key / cron ------------------------------------------
 say ""
-OUT_LANG=$(ask "Output language [ru/en]" "ru")
+if [[ -n "${PM_SB_OUT_LANG:-}" ]]; then
+  OUT_LANG="$PM_SB_OUT_LANG"
+  ok "output language from env: $OUT_LANG"
+else
+  OUT_LANG=$(ask "Output language [ru/en]" "ru")
+fi
 case "$OUT_LANG" in ru|en) ;; *) warn "unknown lang '$OUT_LANG', defaulting to ru"; OUT_LANG="ru" ;; esac
 
 say ""
-CRON_TIME=$(ask "Daily brief cron (m h dom mon dow)" "0 8 * * 1-5")
+if [[ -n "${PM_SB_CRON_TIME:-}" ]]; then
+  CRON_TIME="$PM_SB_CRON_TIME"
+  ok "cron from env: $CRON_TIME"
+else
+  CRON_TIME=$(ask "Daily brief cron (m h dom mon dow)" "0 8 * * 1-5")
+fi
 
 # --- 4. Install Python deps -------------------------------------------------
 # Anthropic API key is NOT requested here — OpenCode and Claude Code each
@@ -136,7 +158,14 @@ ok "MCP configs written"
 # --- 10. Optional launchd schedule (macOS) ---------------------------------
 if [[ "$OSTYPE" == "darwin"* ]]; then
   say ""
-  if ask_yn "Install macOS launchd schedule for daily brief now?" y; then
+  INSTALL_LAUNCHD_DECISION=""
+  case "${PM_SB_INSTALL_LAUNCHD:-}" in
+    y|Y|yes|true|1)  INSTALL_LAUNCHD_DECISION="yes" ;;
+    n|N|no|false|0)  INSTALL_LAUNCHD_DECISION="no"  ;;
+  esac
+  if [[ "$INSTALL_LAUNCHD_DECISION" == "no" ]]; then
+    info "Skipping launchd (PM_SB_INSTALL_LAUNCHD=no)."
+  elif [[ "$INSTALL_LAUNCHD_DECISION" == "yes" ]] || ask_yn "Install macOS launchd schedule for daily brief now?" y; then
     OPENCODE_BIN="$(command -v opencode || true)"
     if [[ -z "$OPENCODE_BIN" ]]; then
       warn "opencode binary not found on PATH — skipping launchd"
